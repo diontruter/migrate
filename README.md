@@ -44,16 +44,11 @@ than the last migration ID that was run.
 This class takes a configuration path when constructed. The configuration path must be a plain PHP file that
 returns a configuration array. The array must have this structure:
 
-<?php
+    <?php
 
-return [
-
-    'basePath' => 'path-within-which-to-find-migration-scripts-directory',
-
-    'connectionString' => 'pdo-database-connection-string',
-
-    'userName' => 'optional-pdo-username',
-
-    'password' => 'optional-pdo-password'
-
-];
+    return [
+        'basePath' => 'path-within-which-to-find-migration-scripts-directory',
+        'connectionString' => 'pdo-database-connection-string',
+        'userName' => 'optional-pdo-username',
+        'password' => 'optional-pdo-password'
+    ];
