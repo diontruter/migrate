@@ -1,0 +1,1 @@
+update users set remember_token = '0' where id = 1;

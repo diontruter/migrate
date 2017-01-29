@@ -1,0 +1,19 @@
+{
+    "name": "diontruter/migrate",
+    "description": "Simple Migration Tool",
+    "type": "project",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Dion Truter",
+            "email": "dion@truter.org"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Diontruter\\": "src/Diontruter/"
+        }
+    }
+}
