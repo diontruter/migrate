@@ -210,11 +210,11 @@ class SimpleMigration
 
         $this->migrationRepository->database->beginTransaction();
         try {
-            $affectedRows = 0;
+            $statements = 0;
             foreach ($sqlStatements as $statement) {
                 $distilled = $parser->removeComments($statement);
                 if (!empty($distilled)) {
-                    $affectedRows += $this->migrationRepository->database->execute($distilled);
+                    $statements += $this->migrationRepository->database->execute($distilled);
                 }
             }
             if ($upOrDown == 'u') {
@@ -222,11 +222,11 @@ class SimpleMigration
             } else {
                 $this->migrationRepository->deleteMigration($migration);
             }
-            echo "$migration->fileName - $affectedRows row(s) affected\n";
+            echo "$migration->fileName - $statements statement(s) executed\n";
             $this->migrationRepository->database->commit();
         } catch (Exception $e) {
             $this->migrationRepository->database->rollBack();
-            throw new Exception("Error processing $migration: {$e->getMessage()}", 0, $e);
+            throw new Exception("Error processing $migration->fileName: {$e->getMessage()}", 0, $e);
         }
     }
 
