@@ -68,11 +68,43 @@ class SimpleMigration
     /**
      * SimpleMigration constructor, requires a configuration path.
      *
-     * @param string $configPath
+     * @param string|null $configPath
+     * @throws Exception If the specified configuration path ($configPath) does not exist or is not a directory
      */
-    public function __construct($configPath)
+    public function __construct($configPath = null)
     {
+        if (!$configPath) {
+            $configPath = $this->resolveConfigPath();
+        }
+        $this->checkConfigPath($configPath);
         $this->configuration = new Configuration($configPath);
+    }
+
+    private function resolveConfigPath()
+    {
+        $directories = array(__DIR__ . '/../../../config', __DIR__ . '/../../config', __DIR__ . '/../config', __DIR__ . '/config');
+
+        foreach ($directories as $directory) {
+            if (file_exists($directory)) {
+                return "$directory/migration.php";
+            }
+        }
+
+        $checkedDirs = implode(', ', $directories);
+        throw new Exception("Config directory not in one of $checkedDirs.\n");
+    }
+
+    private function checkConfigPath($configPath)
+    {
+        if (!file_exists($configPath)) {
+            $defaultDir = __DIR__ . '/../../../resources/defaults/migration.php';
+            FileManager::copy($defaultDir, $configPath);
+            throw new Exception("Configuration file '$configPath' not found, created a sample");
+        }
+
+        if (!file_exists($configPath) || !is_file($configPath)) {
+            throw new Exception("Configuration file '$configPath' does not exist or is not a directory");
+        }
     }
 
     /**
@@ -102,7 +134,7 @@ class SimpleMigration
                     break;
                 default:
                     throw new Exception(
-                        "Unrecognized command: '$command'. Valid commands are up (default), down and status");
+                        "Unrecognized command: '$command'. Valid commands are up (default), down and status.");
             }
         } catch (Exception $e) {
             echo "{$e->getMessage()}\n";

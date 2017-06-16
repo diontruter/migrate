@@ -1,4 +1,8 @@
 <?php namespace Diontruter\Migrate;
+use Exception;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 /**
  * Encapsulates file operations performed by the application.
@@ -30,12 +34,11 @@ class FileManager
      */
     public function createScriptDirectories()
     {
-        if (!file_exists($this->basePath)) {
-            mkdir($this->basePath, 0777, true);
-        }
-
         if (!file_exists( $this->migrationsPath)) {
-            mkdir($this->migrationsPath, 0777, true);
+            $defaultDir = __DIR__ . '/../../../resources/defaults';
+            $this->copyr($defaultDir, $this->migrationsPath);
+            $this->filename_replace('${date}', date('Y-m-d'), $this->migrationsPath );
+            echo "Sample migrations created in '$this->migrationsPath'\n";
         }
     }
 
@@ -69,4 +72,70 @@ class FileManager
     {
         return "$this->migrationsPath/{$migration->fileName}";
     }
+
+    public static function copyr($source, $dest)
+    {
+        if (is_dir($source)) {
+            mkdir($dest);
+            $iterator = new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS);
+            $iteratorIterator = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::SELF_FIRST);
+            foreach ($iteratorIterator as $item) {
+                if ($item->isDir()) {
+                    self::mkdir($dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
+                } else {
+                    self:copy($item, $dest . DIRECTORY_SEPARATOR . $iterator->getSubPathName());
+                }
+            }
+        } else {
+            self::copy($source, $dest);
+        }
+    }
+
+    /**
+     * @param string $path
+     * @return SplFileInfo[]
+     */
+    private static function getRecursiveIteratorIterator($path)
+    {
+        $iterator = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
+        /** @var SplFileInfo[] $iteratorIterator */
+        $iteratorIterator = new RecursiveIteratorIterator($iterator, RecursiveIteratorIterator::SELF_FIRST);
+        return $iteratorIterator;
+    }
+
+    public static function filename_replace($search, $replace, $source)
+    {
+        if (is_dir($source)) {
+            foreach (self::getRecursiveIteratorIterator($source) as $item) {
+                self::rename($item->getPathname(), str_replace($search, $replace, $item->getPathname()));
+            }
+        } else {
+            self::rename($source, str_replace($search, $replace, $source));
+        }
+    }
+
+    public static function mkdir($pathname)
+    {
+        if (!mkdir($pathname)) {
+            $errorMessage = error_get_last();
+            throw new Exception("Cannot create '$pathname' ($errorMessage)");
+        }
+    }
+
+    public static function copy($source, $dest)
+    {
+        if (!copy($source, $dest)) {
+            $errorMessage = error_get_last();
+            throw new Exception("Cannot copy '$source' to '$dest' ($errorMessage)");
+        }
+    }
+
+    public static function rename($oldname, $newname)
+    {
+        if (!rename($oldname, $newname)) {
+            $errorMessage = error_get_last();
+            throw new Exception("Cannot rename '$oldname' to '$newname' ($errorMessage)");
+        }
+    }
+
 }
